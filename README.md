@@ -1,2 +1,2 @@
-# notifier
-A service to send system notification
+# notifier-rs
+A simple service to send system notification written in rust
