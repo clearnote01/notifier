@@ -1,7 +1,7 @@
 extern crate notify_rust;
 extern crate regex;
 
-use notify_rust::Notification;
+use notify_rust::{Timeout, Notification};
 use std::{thread, time};
 
 use std::process::Command;
@@ -20,16 +20,8 @@ struct Config {
 fn get_default_conf() -> Config {
     Config {
         check_interval: 60*5, // 5 minutes
-        battery_threshold: 20 // 20 percent
+        battery_threshold: 90 // 20 percent
     }
-}
-
-fn notify_msg(summary: &str, body: &str, icon: &str) {
-    Notification::new()
-        .summary(summary)
-        .body(body)
-        .icon(icon)
-        .show().unwrap();
 }
 
 fn cur_battery() -> (i8, BatteryStatus) {
@@ -58,11 +50,12 @@ fn main() {
         println!("current battery is: {:?}%", battery );
         if battery < config.battery_threshold {
             if let BatteryStatus::DISCHARGING = status {
-                notify_msg(
-                    "LOW BATTERY",
-                    "PUT CHARGER PLEASE",
-                    "dialog-information"
-                          );
+                Notification::new()
+                    .summary("You laptop battery is low")
+                    .body("PUT YOUR CHARGER PLEASE")
+                    .icon("battery-caution")
+                    .timeout(Timeout::Milliseconds(25000))
+                    .show().unwrap();
             }
 
         }
