@@ -1,2 +1,5 @@
 # notifier-rs
-A simple service to send system notification written in rust
+A simple service to send linux system notification written in rust
+
+## Actions
+- Sends a battery low notification when it gets lower than 20%, checks every 10 minutes.
