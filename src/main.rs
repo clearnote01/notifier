@@ -1,6 +1,3 @@
-extern crate notify_rust;
-extern crate regex;
-
 use notify_rust::{Timeout, Notification};
 use std::{thread, time};
 
