@@ -1,24 +1,18 @@
 use notify_rust::{Timeout, Notification};
-use std::{thread, time};
-
-use std::process::Command;
 use regex::Regex;
+use clap::clap_app;
+use std::{thread, time};
+use std::process::Command;
+
 
 enum BatteryStatus {
     CHARGING,
     DISCHARGING
 }
 
-struct Config {
+struct BatConfig {
     pub check_interval: u64, // in seconds
     pub battery_threshold: i8 // in percengtage
-}
-
-fn get_default_conf() -> Config {
-    Config {
-        check_interval: 60*5, // 5 minutes
-        battery_threshold: 20 // 20 percent
-    }
 }
 
 fn cur_battery() -> (i8, BatteryStatus) {
@@ -39,9 +33,8 @@ fn cur_battery() -> (i8, BatteryStatus) {
     };
     (percent, chr_status)
 }
- 
-fn main() {
-    let config = get_default_conf();
+
+fn run_bat_loop(config: BatConfig) {
     loop {
         let (battery, status) = cur_battery();
         println!("current battery is: {:?}%", battery );
@@ -51,12 +44,38 @@ fn main() {
                     .summary("You laptop battery is low")
                     .body("PUT YOUR CHARGER PLEASE")
                     .icon("battery-caution")
-                    .timeout(Timeout::Milliseconds(25000))
+                    .timeout(Timeout::Milliseconds(10000))
                     .show().unwrap();
             }
 
         }
-        let duration = time::Duration::from_secs(config.check_interval);
+        let duration = time::Duration::from_secs(config.check_interval * 60); // convert minutes to secs
         thread::sleep(duration);
     }
+}
+ 
+fn main() {
+    let matches = clap_app!(myapp =>
+        (version: "1.0")
+        (author: "clearnote01")
+        (about: "Sends notification to remind you of things")
+        (@subcommand bat =>
+                        (about: "Notification about battery low at frequenct intervals")
+                        (@arg check_interval: -i --interval default_value("5") +takes_value "when to trigger notificaton (in minutes)")
+                        (@arg battery_threshold: -t --threshold default_value("20") +takes_value "below this percentage start notification")
+        )
+    ).get_matches();
+
+    if let Some (bat_matches) = matches.subcommand_matches("bat") {
+        let check_interval = bat_matches.value_of("check_interval").unwrap();
+        let check_interval: u64 = check_interval.parse().unwrap();
+        let battery_threshold = bat_matches.value_of("battery_threshold").unwrap();
+        let battery_threshold: i8 = battery_threshold.parse().unwrap();
+
+        let bat_conf = BatConfig {
+            check_interval,
+            battery_threshold
+        };
+        run_bat_loop(bat_conf);
+    };
 }
