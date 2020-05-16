@@ -17,7 +17,7 @@ struct Config {
 fn get_default_conf() -> Config {
     Config {
         check_interval: 60*5, // 5 minutes
-        battery_threshold: 90 // 20 percent
+        battery_threshold: 20 // 20 percent
     }
 }
 
